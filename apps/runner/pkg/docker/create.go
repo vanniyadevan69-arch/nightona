@@ -189,7 +189,7 @@ func (d *DockerClient) Create(ctx context.Context, sandboxDto dto.CreateSandboxD
 	}
 
 	c, err := d.apiClient.ContainerCreate(ctx, containerConfig, hostConfig, networkingConfig, &v1.Platform{
-		Architecture: "amd64",
+		Architecture: hostArch,
 		OS:           "linux",
 	}, sandboxDto.Id)
 	if err != nil {
@@ -275,7 +275,18 @@ func (p *DockerClient) validateImageArchitecture(image *image.InspectResponse) e
 	}
 
 	arch := strings.ToLower(image.Architecture)
-	validArchs := []string{"amd64", "x86_64"}
+
+	// Accept both the Go-style GOARCH name and its alternate spelling actually
+	// reported by some registries/daemons for the SAME host architecture --
+	// never the other architecture's names, or an arm64 host would silently
+	// accept (and then try to run, under emulation) an amd64-only image.
+	var validArchs []string
+	switch hostArch {
+	case "arm64":
+		validArchs = []string{"arm64", "aarch64"}
+	default:
+		validArchs = []string{"amd64", "x86_64"}
+	}
 
 	for _, validArch := range validArchs {
 		if arch == validArch {
@@ -283,5 +294,5 @@ func (p *DockerClient) validateImageArchitecture(image *image.InspectResponse) e
 		}
 	}
 
-	return common_errors.NewConflictError(fmt.Errorf("image %s architecture (%s) is not x64 compatible", image.ID, image.Architecture))
+	return common_errors.NewConflictError(fmt.Errorf("image %s architecture (%s) does not match this runner's host architecture (%s)", image.ID, image.Architecture, hostArch))
 }

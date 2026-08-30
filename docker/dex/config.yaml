@@ -17,6 +17,10 @@ staticClients:
       - 'http://localhost:3000/api/oauth2-redirect.html'
       - 'http://localhost:3009/callback'
       - 'http://proxy.localhost:4000/callback'
+      # Host api port remapped to 3900 (3000 is cloudcoder-web locally).
+      - 'http://localhost:3900'
+      - 'http://localhost:3900/dashboard'
+      - 'http://localhost:3900/api/oauth2-redirect.html'
     name: 'Nightona'
     public: true
 enablePasswordDB: true

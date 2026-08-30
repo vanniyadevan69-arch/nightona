@@ -3,7 +3,7 @@ services:
   api:
     image: daytonaio/daytona-api # upstream image; replace when Nightona publishes its own
     ports:
-      - 3000:3000
+      - 3900:3000
     environment:
       - OTEL_ENABLED=true
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
@@ -28,8 +28,8 @@ services:
       - OIDC_MANAGEMENT_API_CLIENT_ID=
       - OIDC_MANAGEMENT_API_CLIENT_SECRET=
       - OIDC_MANAGEMENT_API_AUDIENCE=
-      - DASHBOARD_URL=http://localhost:3000/dashboard
-      - DASHBOARD_BASE_API_URL=http://localhost:3000
+      - DASHBOARD_URL=http://localhost:3900/dashboard
+      - DASHBOARD_BASE_API_URL=http://localhost:3900
       - POSTHOG_API_KEY=phc_bYtEsdMDrNLydXPD4tufkBrHKgfO2zbycM30LOowYNv
       - POSTHOG_HOST=https://d18ag4dodbta3l.cloudfront.net
       - POSTHOG_ENVIRONMENT=local
@@ -93,6 +93,20 @@ services:
       - RUN_MIGRATIONS=true
       - OTEL_COLLECTOR_API_KEY=otel_collector_api_key
       - HEALTH_CHECK_API_KEY=supersecretkey
+      # Fixed admin API key so a fresh install self-provisions a working,
+      # non-interactive credential on first boot (see app.service.ts
+      # initializeAdminUser()) -- no Dex login / dashboard click-through
+      # needed to get a key CloudCoder (or any other client) can use.
+      - ADMIN_API_KEY=${NIGHTONA_ADMIN_API_KEY:-dtn_local_dev_admin_key_do_not_use_in_prod}
+      - ADMIN_TOTAL_CPU_QUOTA=10000
+      - ADMIN_TOTAL_MEMORY_QUOTA=10000
+      - ADMIN_TOTAL_DISK_QUOTA=100000
+      - ADMIN_MAX_CPU_PER_SANDBOX=100
+      - ADMIN_MAX_MEMORY_PER_SANDBOX=100
+      - ADMIN_MAX_DISK_PER_SANDBOX=1000
+      - ADMIN_SNAPSHOT_QUOTA=1000
+      - ADMIN_MAX_SNAPSHOT_SIZE=1000
+      - ADMIN_VOLUME_QUOTA=10000
     networks:
       - nightona-network
     restart: always
@@ -107,6 +121,9 @@ services:
   proxy:
     image: daytonaio/daytona-proxy # upstream image; replace when Nightona publishes its own
     environment:
+      # Upstream binary still reads DAYTONA_API_URL (Nightona's images aren't
+      # published yet); keep NIGHTONA_API_URL for forward-compat.
+      - DAYTONA_API_URL=http://api:3000/api
       - NIGHTONA_API_URL=http://api:3000/api
       - PROXY_PORT=4000
       - PROXY_API_KEY=super_secret_key
@@ -131,6 +148,10 @@ services:
     environment:
       - ENVIRONMENT=development
       - API_PORT=3003
+      # Upstream binary still reads DAYTONA_API_URL/RUNNER_API_KEY (Nightona's
+      # images aren't published yet); keep the NIGHTONA_* names too.
+      - DAYTONA_API_URL=http://api:3000/api
+      - DAYTONA_RUNNER_TOKEN=secret_api_token
       - NIGHTONA_RUNNER_TOKEN=secret_api_token
       - LOG_FILE_PATH=/home/nightona/runner/runner.log
       - RESOURCE_LIMITS_DISABLED=true
@@ -141,6 +162,7 @@ services:
       - AWS_DEFAULT_BUCKET=nightona
       - NIGHTONA_API_URL=http://api:3000/api
       - RUNNER_DOMAIN=runner
+      - RUNNER_API_URL=http://runner:3003
       - SSH_GATEWAY_ENABLE=true
       - SSH_PUBLIC_KEY=c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCZ1FEZUtocFdOYVhVNkpSMnJXekc1NlZJeksrcmsrdForcCtVUmwyeWF5cWRnZGg2bnVOL1NtVnJsYmV4MGlrRVZZemdRWUIwWno5M2dqOVhxSkd4WjJiMHVoSDFzNkp2bnhKZVdIK05rbjBNMzRiRjZkeVloZ3o4M0JaTitWcElJdnVDT1pxYWE4VnlRWjhPdjVLMU00enlmQnFCMld3ejcwZEVWUnFaMnVZckd5U0RqUUIrU3hRQ3phY0djb2JRQTFUd2QxdEJvSk5BaVpPWXFSU3d6TmNoTk5hZHlxSHRGdkZRQ0hhNjZWaVBmQ0FVUGt2cEN6ZGh3TmJGdVhGVWkxbnZOWkx4M056RU41M05LWUhZcWU3Y3dXZkI4QjBoRDhDd3hmSDd6T0o1b1RCMnBMVVlsUWpZRDNsN3k4SkFTbDZpYkpuR1A1SWczVXpZWlRIdUdkNzVXWktnNTRJTVROQlFPMWpJdE9HL0orUm1XbzB0YTdpRkF6ZExyL1BmbDdXTVMwbEZhSm9scTdUVmJLUG1JODFTOU04VEgrbXhLbGZ5b2NqZzhwSUdlQUllcEo3dXl1Vk1xT2wxeVVuSFNycDRlVEVlR0k3NlpCOFRoUzhkYnBLUTIvb2RYMHkwc3FSZDI0Y2lGdnM0dnZVaW80NFdYNlNWRG54dXpWRHc1Rzg9IGRheXRvbmFAMDQwNjZiZDIwY2Vi
       - INTER_SANDBOX_NETWORK_ENABLED=false

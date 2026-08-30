@@ -187,6 +187,7 @@ export class SandboxTypeormSearchAdapter implements SandboxSearchAdapter {
       errorReason: sandbox.errorReason,
       recoverable: sandbox.recoverable,
       public: sandbox.public,
+      networkBlockAll: sandbox.networkBlockAll,
       cpu: sandbox.cpu,
       gpu: sandbox.gpu,
       gpuType: sandbox.gpuType ?? undefined,

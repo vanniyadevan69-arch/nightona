@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 	"time"
 
@@ -129,16 +130,37 @@ func run() int {
 	}
 	defer netRulesManager.Stop()
 
-	daemonPath, err := daemon.WriteStaticBinary("daemon-amd64")
+	// The in-sandbox toolbox daemon must match the SANDBOX CONTAINER's own
+	// architecture (which now follows this runner's host arch, see
+	// pkg/docker/platform.go) -- not just whatever arch this runner binary
+	// itself happens to be compiled for. A hardcoded "daemon-amd64" here
+	// bind-mounted into a native arm64 sandbox container is a foreign-arch
+	// binary that can only run via a full per-process binfmt_misc/QEMU
+	// translation, which is exactly the failure mode ("failed to start PTY
+	// session", fork/exec errors under emulation) this fixes.
+	daemonBinaryName := "daemon-amd64"
+	if runtime.GOARCH == "arm64" {
+		daemonBinaryName = "daemon-arm64"
+	}
+	daemonPath, err := daemon.WriteStaticBinary(daemonBinaryName)
 	if err != nil {
 		logger.Error("Error writing daemon binary", "error", err)
 		return 2
 	}
 
-	pluginPath, err := daemon.WriteStaticBinary("nightona-computer-use")
+	// The computer-use (VNC/desktop automation) plugin is optional: it isn't
+	// on the path any Terminal/PTY, file, or run-orchestration surface takes.
+	// A missing or wrong-arch plugin binary must degrade the one capability
+	// that actually depends on it (desktop automation), never crash-exit the
+	// entire runner and take down every sandbox capability with it.
+	computerUseBinaryName := "nightona-computer-use"
+	if runtime.GOARCH == "arm64" {
+		computerUseBinaryName = "nightona-computer-use-arm64"
+	}
+	pluginPath, err := daemon.WriteStaticBinary(computerUseBinaryName)
 	if err != nil {
-		logger.Error("Error writing plugin binary", "error", err)
-		return 2
+		logger.Warn("computer-use plugin binary unavailable for this architecture; desktop/computer-use capability will be disabled", "error", err)
+		pluginPath = ""
 	}
 
 	backupInfoCache := cache.NewBackupInfoCache(ctx, cfg.BackupInfoCacheRetention)

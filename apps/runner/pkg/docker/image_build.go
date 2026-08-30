@@ -164,7 +164,7 @@ func (d *DockerClient) BuildImage(ctx context.Context, buildImageDto dto.BuildSn
 		Remove:      true,
 		ForceRemove: true,
 		PullParent:  true,
-		Platform:    "linux/amd64", // Force AMD64 architecture
+		Platform:    dockerPlatformString(), // Match this runner's own host architecture
 		AuthConfigs: authConfigs,
 	}
 

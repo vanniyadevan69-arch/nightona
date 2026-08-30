@@ -371,6 +371,7 @@ export class SandboxOpenSearchSearchAdapter implements SandboxSearchAdapter, OnM
       errorReason: source.errorReason,
       recoverable: source.recoverable,
       public: source.public,
+      networkBlockAll: source.networkBlockAll,
       cpu: source.cpu,
       gpu: source.gpu,
       gpuType: source.gpu_type ?? undefined,

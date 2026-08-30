@@ -25,6 +25,7 @@ interface SandboxListItemDtoFields {
   errorReason?: string
   recoverable?: boolean
   public: boolean
+  networkBlockAll: boolean
   cpu: number
   gpu: number
   gpuType?: GpuType
@@ -141,6 +142,12 @@ export class SandboxListItemDto {
     example: false,
   })
   public: boolean
+
+  @ApiProperty({
+    description: 'Whether all outbound network access from the sandbox is blocked',
+    example: false,
+  })
+  networkBlockAll: boolean
 
   @ApiProperty({
     description: 'The CPU quota for the sandbox',
@@ -271,6 +278,7 @@ export class SandboxListItemDto {
     errorReason,
     recoverable,
     public: isPublic,
+    networkBlockAll,
     cpu,
     gpu,
     gpuType,
@@ -299,6 +307,7 @@ export class SandboxListItemDto {
     this.errorReason = errorReason
     this.recoverable = recoverable
     this.public = isPublic
+    this.networkBlockAll = networkBlockAll
     this.cpu = cpu
     this.gpu = gpu
     this.gpuType = gpuType
