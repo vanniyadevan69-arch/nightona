@@ -14,7 +14,7 @@
       "configurations": {
         "production": {}
       },
-      "dependsOn": ["build-amd64"],
+      "dependsOn": ["build-amd64", "build-arm64"],
       "inputs": [
         "goProduction",
         "^goProduction",
@@ -24,22 +24,45 @@
     "build-amd64": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "./hack/computer-use/build-computer-use-amd64.sh"
+        "command": "bash ./hack/computer-use/build-computer-use-amd64.sh"
       },
       "configurations": {
         "production": {
-          "command": "if [ -n \"$SKIP_COMPUTER_USE_BUILD\" ]; then echo 'Skipping computer-use build'; else ./hack/computer-use/build-computer-use-amd64.sh; fi"
+          "command": "if [ -n \"$SKIP_COMPUTER_USE_BUILD\" ]; then echo 'Skipping computer-use build'; else bash ./hack/computer-use/build-computer-use-amd64.sh; fi"
         }
       },
       "inputs": [
         "{projectRoot}/**/*.go",
         "{projectRoot}/go.mod",
         "{projectRoot}/go.sum",
+        "{workspaceRoot}/hack/computer-use/build-computer-use.sh",
         "{workspaceRoot}/hack/computer-use/build-computer-use-amd64.sh",
         "{workspaceRoot}/hack/computer-use/Dockerfile",
         "sharedGlobals"
       ],
       "outputs": ["{workspaceRoot}/dist/libs/computer-use-amd64"],
+      "cache": true
+    },
+    "build-arm64": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bash ./hack/computer-use/build-computer-use-arm64.sh"
+      },
+      "configurations": {
+        "production": {
+          "command": "if [ -n \"$SKIP_COMPUTER_USE_BUILD\" ]; then echo 'Skipping computer-use build'; else bash ./hack/computer-use/build-computer-use-arm64.sh; fi"
+        }
+      },
+      "inputs": [
+        "{projectRoot}/**/*.go",
+        "{projectRoot}/go.mod",
+        "{projectRoot}/go.sum",
+        "{workspaceRoot}/hack/computer-use/build-computer-use.sh",
+        "{workspaceRoot}/hack/computer-use/build-computer-use-arm64.sh",
+        "{workspaceRoot}/hack/computer-use/Dockerfile",
+        "sharedGlobals"
+      ],
+      "outputs": ["{workspaceRoot}/dist/libs/computer-use-arm64"],
       "cache": true
     },
     "format": {

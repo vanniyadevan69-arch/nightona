@@ -11,6 +11,7 @@ node_modules
 .env.local
 dist
 !dist/libs/computer-use-amd64
+!dist/libs/computer-use-arm64
 !dist/apps/runner-amd64
 !dist/apps/snapshot-manager
 docker

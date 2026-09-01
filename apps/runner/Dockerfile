@@ -52,6 +52,7 @@ COPY libs/computer-use/ libs/computer-use/
 
 # Pre-built computer-use binary and build script
 COPY dist/libs/computer-use-amd64 dist/libs/computer-use-amd64
+COPY dist/libs/computer-use-arm64 dist/libs/computer-use-arm64
 
 # Pin google.golang.org/genproto to a post-split version. The trimmed workspace
 # lacks snapshot-manager -> distribution/v3 which normally bumps genproto past the

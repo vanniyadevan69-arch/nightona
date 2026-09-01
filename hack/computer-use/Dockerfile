@@ -1,5 +1,8 @@
 FROM ubuntu:22.04
 
+ARG TARGETARCH
+ENV TARGETARCH=${TARGETARCH}
+
 # Set environment variables early
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -19,19 +22,20 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-RUN echo "go 1.25.4\n\nuse (\n  ./libs/computer-use\n   ./apps/daemon\n     ./libs/common-go\n)" > /app/go.work
+RUN echo "go 1.25.4\n\nuse (\n  ./libs/computer-use\n  ./apps/daemon\n  ./libs/common-go\n  ./libs/api-client-go\n)" > /app/go.work
 
 COPY go.work.sum /app/go.work.sum
 
 COPY ./apps/daemon /app/apps/daemon
 COPY ./libs/common-go /app/libs/common-go
+COPY ./libs/api-client-go /app/libs/api-client-go
 COPY ./libs/computer-use /app/libs/computer-use
 
 # Build the application with optimizations
 RUN cd /app/libs/computer-use && \
-    CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /app/computer-use main.go && \
+    CGO_ENABLED=1 GOOS=linux GOARCH=${TARGETARCH} go build -ldflags="-w -s" -o /app/computer-use main.go && \
     chmod +x /app/computer-use
 
 VOLUME ["/dist"]
 
-ENTRYPOINT ["cp", "/app/computer-use", "/dist/libs/computer-use-amd64"]
+ENTRYPOINT ["sh", "-c", "cp /app/computer-use /dist/libs/computer-use-${TARGETARCH}"]
